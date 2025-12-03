@@ -1,62 +1,64 @@
 package caso2;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
-    /* @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, @Lazy RutaService rutaService) throws Exception {
-        var rutas = rutaService.getRutas();
-        http.authorizeHttpRequests(requests -> {
-            for (Ruta ruta : rutas) {
-                if (ruta.isRequiereRol()) {
-                    requests.requestMatchers(ruta.getRuta()).hasRole(ruta.getRol().getRol());
-                } else {
-                    requests.requestMatchers(ruta.getRuta()).permitAll();
-                }
-            }
-            requests.anyRequest().authenticated();
-        });
 
-        http.formLogin(form -> form // Configuración de formulario de login
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                // Recursos públicos
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/", "/Home", "/login").permitAll()
+                
+                // Rutas de administración solo para ADMIN
+                .requestMatchers("/usuarios/nuevo", "/usuarios/modificar/**", "/usuarios/guardar", "/usuarios/eliminar").hasRole("ADMIN")
+                .requestMatchers("/roles/**").hasRole("ADMIN")
+                
+                // Rutas de visualización para ADMIN y PROFESOR
+                .requestMatchers("/usuarios").hasAnyRole("ADMIN", "PROFESOR")
+                .requestMatchers("/reportes/**").hasAnyRole("ADMIN", "PROFESOR")
+                .requestMatchers("/consultas/**").hasAnyRole("ADMIN", "PROFESOR")
+                .requestMatchers("/usuarios/perfil").hasAnyRole("ADMIN", "PROFESOR", "ESTUDIANTE")
+                .requestMatchers("/acceso-denegado").permitAll()
+                .requestMatchers("/dashboard").authenticated()
+                
+                // Cualquier otra ruta requiere autenticación
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl("/dashboard", true)
                 .failureUrl("/login?error=true")
                 .permitAll()
-        ).logout(logout -> logout // Configuración de logout
+            )
+            .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
+                .logoutSuccessUrl("/Home?logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-        ).exceptionHandling(exceptions -> exceptions // Manejo de excepciones
-                .accessDeniedPage("/acceso_denegado")
-        ).sessionManagement(session -> session // Configuración de sesiones
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-        );
-        return http.build();
-    } */
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/acceso-denegado")
+            );
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return http.build();
     }
 
-   /*  @Autowired
-    public void configurerGlobal(AuthenticationManagerBuilder build, 
-            @Lazy PasswordEncoder passwordEncoder, 
-            @Lazy UserDetailsService userDetailsService) throws Exception {
-        build.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
-    } */
+    @Bean
+    @SuppressWarnings("deprecation")
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
 }

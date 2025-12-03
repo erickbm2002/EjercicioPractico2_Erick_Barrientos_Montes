@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    
+    <div class="container mt-4">
+        <h2>
+            <i class="bi bi-shield-fill-plus"></i>
+            <span th:if="${rol.idRol == 0}">Nuevo Rol</span>
+            <span th:unless="${rol.idRol == 0}">Editar Rol</span>
+        </h2>
+        <hr>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/roles/guardar}" method="post" th:object="${rol}">
+                            <input type="hidden" th:field="*{idRol}">
+                            
+                            <div class="mb-3">
+                                <label for="nombreRol" class="form-label">
+                                    <i class="bi bi-tag"></i> Nombre del Rol *
+                                </label>
+                                <input type="text" class="form-control" id="nombreRol" 
+                                       th:field="*{nombreRol}" required 
+                                       placeholder="Ej: ADMIN, PROFESOR, ESTUDIANTE">
+                                <div class="text-danger" th:if="${#fields.hasErrors('nombreRol')}" 
+                                     th:errors="*{nombreRol}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="descripcionRol" class="form-label">
+                                    <i class="bi bi-card-text"></i> Descripción
+                                </label>
+                                <textarea class="form-control" id="descripcionRol" 
+                                          th:field="*{descripcionRol}" rows="3"
+                                          placeholder="Descripción del rol..."></textarea>
+                                <div class="text-danger" th:if="${#fields.hasErrors('descripcionRol')}" 
+                                     th:errors="*{descripcionRol}"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a th:href="@{/roles}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

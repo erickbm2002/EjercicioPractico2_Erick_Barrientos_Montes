@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    
+    <div class="container mt-4">
+        <h2><i class="bi bi-bar-chart-fill"></i> Reportes del Sistema</h2>
+        <hr>
+        
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            Bienvenido <strong>[[${usuario}]]</strong>. Esta es la página de reportes reservada para profesores y administradores.
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-people"></i> Acceso a Usuarios</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Visualiza la lista completa de usuarios registrados en el sistema.</p>
+                        <a th:href="@{/usuarios}" class="btn btn-primary">
+                            <i class="bi bi-eye"></i> Ver Usuarios
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-search"></i> Consultas Avanzadas</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Realiza búsquedas y consultas específicas sobre los usuarios del sistema.</p>
+                        <a th:href="@{/consultas}" class="btn btn-success">
+                            <i class="bi bi-search"></i> Ir a Consultas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Estadísticas Generales</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Aquí puedes ver estadísticas generales del sistema académico.</p>
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-bar-chart"></i> Esta sección puede expandirse con gráficos y métricas adicionales.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

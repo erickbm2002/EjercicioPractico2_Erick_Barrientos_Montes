@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    
+    <div class="container mt-4">
+        <h2>
+            <i class="bi bi-person-fill-add"></i>
+            <span th:if="${usuario.idUsuario == null}">Nuevo Usuario</span>
+            <span th:unless="${usuario.idUsuario == null}">Editar Usuario</span>
+        </h2>
+        <hr>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/usuarios/guardar}" method="post" th:object="${usuario}">
+                            <input type="hidden" th:field="*{idUsuario}">
+                            <input type="hidden" th:field="*{fechaCreacion}">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombreUsuario" class="form-label">
+                                        <i class="bi bi-person"></i> Nombre *
+                                    </label>
+                                    <input type="text" class="form-control" id="nombreUsuario" 
+                                           th:field="*{nombreUsuario}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('nombreUsuario')}" 
+                                         th:errors="*{nombreUsuario}"></div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="apellidoUsuario" class="form-label">
+                                        <i class="bi bi-person"></i> Apellido *
+                                    </label>
+                                    <input type="text" class="form-control" id="apellidoUsuario" 
+                                           th:field="*{apellidoUsuario}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('apellidoUsuario')}" 
+                                         th:errors="*{apellidoUsuario}"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="emailUsuario" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email *
+                                </label>
+                                <input type="email" class="form-control" id="emailUsuario" 
+                                       th:field="*{emailUsuario}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('emailUsuario')}" 
+                                     th:errors="*{emailUsuario}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="passwordUsuario" class="form-label">
+                                    <i class="bi bi-key"></i> Contraseña
+                                    <span th:if="${usuario.idUsuario == null}" class="text-danger">*</span>
+                                    <span th:unless="${usuario.idUsuario == null}" class="text-muted">(Dejar en blanco para mantener la actual)</span>
+                                </label>
+                                <input type="password" class="form-control" id="passwordUsuario" 
+                                       th:field="*{passwordUsuario}">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="rol" class="form-label">
+                                        <i class="bi bi-shield"></i> Rol *
+                                    </label>
+                                    <select class="form-select" id="rol" th:field="*{rol.idRol}" required>
+                                        <option value="">Seleccione un rol...</option>
+                                        <option th:each="rol : ${roles}" 
+                                                th:value="${rol.idRol}" 
+                                                th:text="${rol.nombreRol}">
+                                        </option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="activo" class="form-label">
+                                        <i class="bi bi-check-circle"></i> Estado
+                                    </label>
+                                    <select class="form-select" id="activo" th:field="*{activo}">
+                                        <option th:value="true">Activo</option>
+                                        <option th:value="false">Inactivo</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a th:href="@{/usuarios}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

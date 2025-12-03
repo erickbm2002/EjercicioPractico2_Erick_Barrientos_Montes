@@ -1,35 +1,27 @@
 package caso2.controllers;
 
-import java.util.Locale;
-import java.util.Optional;
-
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
+import caso2.domain.Usuario;
+import caso2.service.RolService;
+import caso2.service.UsuarioService;
+import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import caso2.domain.Usuario;
-import caso2.service.UsuarioService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import jakarta.validation.Valid;
-
-
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {
     private final UsuarioService usuarioService;
-    private final MessageSource messageSource;
+    private final RolService rolService;
 
-    public UsuarioController(UsuarioService usuarioService, MessageSource messageSource) {
+    public UsuarioController(UsuarioService usuarioService, RolService rolService) {
         this.usuarioService = usuarioService;
-        this.messageSource = messageSource;
+        this.rolService = rolService;
     }
 
     @GetMapping()
@@ -40,60 +32,67 @@ public class UsuarioController {
         return "/pages/usuarios";
     }
 
-    @PostMapping("/guardar")
-    public String guardarUsuario(@Valid Usuario usuario, BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error",
-                    messageSource.getMessage("Usuario.error04", null, Locale.getDefault()));
-            if (usuario.getIdUsuario() == null) {
-                return "redirect:/usuario";
-            }
-            return "redirect:/usuario/modifcar" + usuario.getIdUsuario();
-        }
-        usuarioService.guardarUsuario(usuario, true);
-        redirectAttributes.addFlashAttribute("success",
-                messageSource.getMessage("Usuario.success01", null, Locale.getDefault()));
-        return "redirect:/usuarios";
-    }
-    
-    @PostMapping("/eliminar") 
-
-    public String eliminarUsuario(@RequestParam Integer idUsuario, RedirectAttributes redirectAttributes) {
-        try {
-            usuarioService.deleteUsuario(idUsuario);
-            redirectAttributes.addFlashAttribute("success",
-                    messageSource.getMessage("Usuario.success02", null, Locale.getDefault()));
-        } catch (IllegalArgumentException e) {
-            // Captura argumento inválido para el mensaje de "no existe"
-            redirectAttributes.addFlashAttribute("error",
-                    messageSource.getMessage("usuario.error01", null,
-                            Locale.getDefault()));
-        } catch (IllegalStateException e) {
-            // Captura estado ilegal para el mensaje de "datos asociados"
-            redirectAttributes.addFlashAttribute("error",
-                    messageSource.getMessage("usuario.error02", null,
-                            Locale.getDefault()));
-        } catch (NoSuchMessageException e) {
-            // Captura cualquier otra excepción inesperada
-            redirectAttributes.addFlashAttribute("error",
-                    messageSource.getMessage("usuario.error03", null,
-                            Locale.getDefault()));
-        }
-        return "redirect:/usuarios";
+    @GetMapping("/nuevo")
+    public String nuevoUsuario(Model model) {
+        model.addAttribute("usuario", new Usuario());
+        model.addAttribute("roles", rolService.obtenerTodosLosRoles());
+        return "/pages/usuarioFormulario";
     }
 
     @GetMapping("/modificar/{idUsuario}")
-    public String modificarUsuario(@PathVariable("idUsuario") Integer idUsuario, Model model, RedirectAttributes redirectAttributes) {
+    public String modificarUsuario(@PathVariable("idUsuario") Integer idUsuario, Model model, 
+            RedirectAttributes redirectAttributes) {
         Optional<Usuario> usuarioOpt = usuarioService.obtenerUsuarioPorId(idUsuario);
         if (usuarioOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("Error", "El usuario no fue encontrado.");
+            redirectAttributes.addFlashAttribute("error", "El usuario no fue encontrado.");
             return "redirect:/usuarios";
         }
         Usuario usuario = usuarioOpt.get();
         usuario.setPasswordUsuario("");
         model.addAttribute("usuario", usuario);
-        return "/pages/usuarioModificar";
+        model.addAttribute("roles", rolService.obtenerTodosLosRoles());
+        return "/pages/usuarioFormulario";
     }
-    
+
+    @PostMapping("/guardar")
+public String guardarUsuario(@Valid Usuario usuario, BindingResult bindingResult,
+        RedirectAttributes redirectAttributes, Model model) {
+    if (bindingResult.hasErrors()) {
+        model.addAttribute("roles", rolService.obtenerTodosLosRoles());
+        return "/pages/usuarioFormulario";
+    }
+    try {
+        usuarioService.guardarUsuario(usuario, false); // false = NO encriptar
+        redirectAttributes.addFlashAttribute("success", "Usuario guardado exitosamente.");
+    } catch (RuntimeException e) {
+        redirectAttributes.addFlashAttribute("error", e.getMessage());
+        return "redirect:/usuarios/nuevo";
+    }
+    return "redirect:/usuarios";
+}
+
+    @PostMapping("/eliminar")
+    public String eliminarUsuario(@RequestParam Integer idUsuario, RedirectAttributes redirectAttributes) {
+        try {
+            usuarioService.deleteUsuario(idUsuario);
+            redirectAttributes.addFlashAttribute("success", "Usuario eliminado exitosamente.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "El usuario no existe.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", "No se puede eliminar el usuario. Tiene datos asociados.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error inesperado al eliminar el usuario.");
+        }
+        return "redirect:/usuarios";
+    }
+
+    @GetMapping("/perfil")
+    public String verPerfil(Authentication authentication, Model model) {
+        String email = authentication.getName();
+        Optional<Usuario> usuarioOpt = usuarioService.obtenerUsuarioPorEmail(email);
+        if (usuarioOpt.isPresent()) {
+            model.addAttribute("usuario", usuarioOpt.get());
+        }
+        return "/pages/perfil";
+    }
 }
